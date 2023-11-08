@@ -1,5 +1,5 @@
 <template>
-    <v-stage ref="stage" :config="stageSize">
+    <v-stage ref="stage" :config="stageSize" >
       <v-layer>
         <v-regular-polygon
           @mousemove="handleMouseMove"

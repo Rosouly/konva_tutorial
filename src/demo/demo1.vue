@@ -1,8 +1,8 @@
 <template>
   <div class="konva-container">
     <v-stage ref="stage" :config="stageConfig">
-      <v-layer>
-        <v-group :config="groupConfig">
+      <v-layer :config="groupConfig">
+        <v-group >
           <v-line :config="blueBlobConfig"></v-line>
           <v-line :config="redBlobConfig"></v-line>
         </v-group>
@@ -31,7 +31,7 @@ const groupConfig = reactive({
     // 通过调用 ctx.clip()，设置当前路径为裁剪区域
     ctx.clip();
   },
-  draggable: true
+  draggable: true,
 });
 
 const blueBlobConfig = reactive({

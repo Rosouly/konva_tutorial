@@ -14,9 +14,12 @@ import Shapes from "../views/shapes.vue"
 import SimpleAnimations from "../views/simple_animations.vue"
 import Transformer from "../views/transformer.vue"
 import Zindex from "../views/zindex.vue"
+import Menu from "../views/menu.vue" 
 
 import Demo from "../demo/demo.vue"
 import Demo1 from "../demo/demo1.vue"
+
+import TreeDemo from "../three/demo.vue"
 
 // 定义路由
 // 每个路由都需要映射到一个组件。
@@ -33,8 +36,11 @@ const routes = [
   { path: '/view/simple_animations', component: SimpleAnimations },
   { path: '/view/transformer', component: Transformer },
   { path: '/view/zindex', component: Zindex },
+  { path: '/', component: Menu}, 
   { path: '/demo/demo', component: Demo },
-  { path: '/demo/demo1', component: Demo1}
+  { path: '/demo/demo1', component: Demo1},
+  { path: '/three/demo', component: TreeDemo},
+  
 ]
 
 // 创建router实例

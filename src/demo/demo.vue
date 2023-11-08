@@ -1,29 +1,75 @@
 <template>
-    <v-stage ref="stageRef" :config="stageConfig" @mousedown="handleStageMouseDown" @touchstart="handleStageMouseDown">
-        <!-- 底层 背景 -->
-        <v-layer>
-            <v-image :config="backgroundConfig"></v-image>
-        </v-layer>
-        <!-- 裁剪区域 -->
-        <v-layer>
-
-        </v-layer>
-        <!-- 表层 -->
-        <v-layer>
-            <v-image :config="overlayConfig" @transformend="handleTransformEnd"></v-image>
-            <!-- 添加移动，缩放，旋转 -->
-            <v-transformer ref="transformerRef" />
-        </v-layer>
-    </v-stage>
-    <img :src="imageSrc" width="800" height="400" />
+    <div class="app-container">
+        <div class="left-container">
+            <div class="left-top-container">
+                <v-stage ref="stageRef" :config="stageConfig" @mousedown="handleStageMouseDown"
+                    @touchstart="handleStageMouseDown" @mouseup="handleStageMouseUp" @touchend="handleStageTouchEnd">
+                    <!-- 底层 背景 -->
+                    <v-layer>
+                        <v-image :config="backgroundConfig"></v-image>
+                    </v-layer>
+                    <!-- 裁剪区域 -->
+                    <v-layer>
+                        <v-shape :config="{
+                            sceneFunc: (context, shape) => {
+                                context.beginPath(); // 开始一个新的路径
+                                context.moveTo(200, 100); // 第一个点
+                                context.lineTo(600, 100); // 第二个点
+                                context.lineTo(400, 300); // 第三个点
+                                context.closePath(); // 开头和结尾连线
+                                // 使用Konva.js的特殊方法来描边形状，这会应用虚线设置
+                                context.fillStrokeShape(shape);
+                            },
+                            stroke: 'black', // 边框色
+                            strokeWidth: 4, // 边框粗细
+                            dash: [10, 5] // 设置虚线模式，10像素实线后跟5像素空白
+                        }" />
+                    </v-layer>
+                    <!-- 表层 -->
+                    <v-layer>
+                        <v-image :config="overlayConfig" @transformend="handleTransformEnd"></v-image>
+                        <!-- 添加移动，缩放，旋转 -->
+                        <v-transformer ref="transformerRef" />
+                    </v-layer>
+                </v-stage>
+            </div>
+            <div class="left-bottom-container">
+                <v-stage ref="previewStageRef" :config="stageConfig">
+                    <v-layer>
+                        <v-image :config="backgroundConfigPreview"></v-image>
+                    </v-layer>
+                    <v-layer :config="layerConfig">
+                        <v-image :config="overlayConfigPreview"></v-image>
+                    </v-layer>
+                </v-stage>
+            </div>
+        </div>
+        <div class="right-container">
+            <CupPreview :imageUrl="imageSrc"></CupPreview>
+        </div>
+    </div>
 </template>
 
 <script setup>
-
-import { reactive, ref, watch } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
+import CupPreview from "../three/demo.vue"
 
 const transformerRef = ref(null)
 const selectedImageName = ref('');
+
+const layerConfig = reactive({
+    clipFunc: function (ctx) {
+        // 开始路径
+        ctx.beginPath();
+        // 绘制一个三角形
+        ctx.moveTo(200, 100); // 第一个点
+        ctx.lineTo(600, 100); // 第二个点
+        ctx.lineTo(400, 300); // 第三个点
+        ctx.closePath(); // 关闭路径
+        // 通过调用 ctx.clip()，设置当前路径为裁剪区域
+        ctx.clip();
+    }
+})
 
 const stageConfig = reactive({
     width: 800,
@@ -36,13 +82,22 @@ const backgroundConfig = reactive({
     image: background,
     x: 0,
     y: 0,
-    width: stageConfig.width - 100,
-    height: stageConfig.height - 50,
+    width: stageConfig.width,
+    height: stageConfig.height,
     name: "background"
 })
 
+const backgroundConfigPreview = reactive({
+    name: "background_preview",
+    image: background,
+    x: 0,
+    y: 0,
+    width: stageConfig.width,
+    height: stageConfig.height
+})
+
 const overlay = new Image();
-overlay.src = "/src/assets/overlay.png"
+overlay.src = "/src/assets/arrow.png"
 const overlayConfig = reactive({
     image: overlay,
     x: 0,
@@ -50,11 +105,27 @@ const overlayConfig = reactive({
     rotation: 0,
     scaleX: 1,
     scaleY: 1,
-    width: 400,
+    width: 300,
     height: 200,
     name: "overlay",
     draggable: true,
-    globalCompositeOperation: 'source-over', // 这会导致圆形内的图片与矩形相交部分可见
+    opacity: 0.9,
+    globalCompositeOperation: 'source-over' // 这会导致圆形内的图片与矩形相交部分可见
+})
+
+const overlayConfigPreview = reactive({
+    image: overlay,
+    x: 0,
+    y: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    width: 300,
+    height: 200,
+    name: "overlay_preview",
+    draggable: false,
+    opacity: 0.9,
+    globalCompositeOperation: 'source-over' // 这会导致圆形内的图片与矩形相交部分可见
 })
 
 function handleStageMouseDown(e) {
@@ -109,14 +180,17 @@ function handleTransformEnd(e) {
         overlayConfig.scaleX = e.target.scaleX(); // 更新矩形的 x 轴缩放比例
         overlayConfig.scaleY = e.target.scaleY(); // 更新矩形的 y 轴缩放比例
     }
+    getImage()
 }
 
-const imageSrc = ref("")
+const imageSrc = ref("/src/assets/background.png")
 
 const stageRef = ref(null)
+const previewStageRef = ref(null)
 
 function getImage() {
-    const stage = stageRef.value.getNode()
+    console.log("生成图片url")
+    const stage = previewStageRef.value.getNode()
     const dataURL = stage.toDataURL({
         pixelRatio: 3, // 增加导出图片的质量
         mimeType: 'image/png',
@@ -125,7 +199,66 @@ function getImage() {
     imageSrc.value = dataURL;
 }
 
+function handleStageMouseUp(e) {
+    if (selectedImageName.value === "overlay") {
+        overlayConfigPreview.x = e.target.x(); // 更新矩形的 x 坐标
+        overlayConfigPreview.y = e.target.y(); // 更新矩形的 y 坐标
+        overlayConfigPreview.rotation = e.target.rotation(); // 更新矩形的旋转角度
+        overlayConfigPreview.scaleX = e.target.scaleX(); // 更新矩形的 x 轴缩放比例
+        overlayConfigPreview.scaleY = e.target.scaleY(); // 更新矩形的 y 轴缩放比例
+    }
+    getImage()
+}
+
 watch(overlayConfig, (newVal, oldVal) => {
     console.log("new value: ", newVal)
+    Object.keys(newVal).forEach(key => {
+        if (key !== "name" && key !== "draggable") {
+            overlayConfigPreview[key] = newVal[key]
+        }
+    })
+    console.log(overlayConfigPreview)
+})
+
+watch(backgroundConfig, (newVal, oldVal) => {
+    Object.keys(newVal).forEach(key => {
+        if (key !== "name" && key !== "draggable") {
+            backgroundConfigPreview[key] = newVal[key]
+        }
+    })
+    console.log(backgroundConfigPreview)
+})
+
+onMounted(() => {
+    console.log("onMounted")
 })
 </script>
+
+<style lang="less" scoped>
+.app-container {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+
+    .left-container {
+        height: 100%;
+        width: 50%;
+        border-right: 2px black solid;
+        display: flex;
+        flex-direction: column;
+
+        .left-top-container {
+            width: 100%;
+            height: 50%;
+            border-bottom: 2px black solid;
+        }
+
+        .left-bottom-container {}
+    }
+
+    .right-container {
+        flex: 1;
+    }
+}
+</style>
