@@ -72,6 +72,7 @@ const handleStageMouseDown = (e) => {
     const name = e.target.name();
     // 根据图形名称在 rectangles 数组中查找对应的矩形对象
     const rect = rectangles.value.find((r) => r.name === name);
+    console.log("rect", rect)
     if (rect) {
         console.log("找到了矩形,设置为选中状态")
         selectedShapeName.value = name; // 如果找到了矩形，设置为选中状态

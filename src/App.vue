@@ -40,6 +40,9 @@
     <li>
       <router-link to="/demo/demo"> demo </router-link>
     </li>
+    <li>
+      <router-link to="/demo/demo1"> demo1 </router-link>
+    </li>
   </ul>
   
   

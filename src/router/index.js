@@ -16,6 +16,7 @@ import Transformer from "../views/transformer.vue"
 import Zindex from "../views/zindex.vue"
 
 import Demo from "../demo/demo.vue"
+import Demo1 from "../demo/demo1.vue"
 
 // 定义路由
 // 每个路由都需要映射到一个组件。
@@ -33,6 +34,7 @@ const routes = [
   { path: '/view/transformer', component: Transformer },
   { path: '/view/zindex', component: Zindex },
   { path: '/demo/demo', component: Demo },
+  { path: '/demo/demo1', component: Demo1}
 ]
 
 // 创建router实例
