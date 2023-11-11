@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "geotiff": "^2.1.0",
     "konva": "^9.2.3",
     "three": "^0.158.0",
     "vue": "^3.3.4",

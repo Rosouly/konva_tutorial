@@ -38,16 +38,30 @@
     <li>
       <router-link to="/view/zindex"> zindex(和Basic一样, 展示了 让被点击的图形显示在最上面 的方法) </router-link>
     </li>
+    <li>
+      <router-link to="/view/composite"> 混合模式 </router-link>
+    </li>
     <h2>Konvas_demo</h2>
     <li>
-      <router-link to="/demo/demo"> demo </router-link>
+      <router-link to="/demo/demo"> ⭐demo </router-link>
     </li>
     <li>
       <router-link to="/demo/demo1"> demo1(剪裁功能，让图片只能在划定的区域内显示) </router-link>
     </li>
+    <li>
+      <router-link to="/demo/demo2"> demo2(显示一个裁剪框，并输出裁剪框的位置信息) </router-link>
+    </li>
     <h2>Three</h2>
     <li>
-      <router-link to="/three/demo"> three(剪裁功能，让图片只能在划定的区域内显示) </router-link>
+      <router-link to="/three/3d"> three(剪裁功能，让图片只能在划定的区域内显示) </router-link>
+    </li>
+    <h2>Iteration</h2>
+    <li>
+      <router-link to="/iteration/version1"> three(剪裁功能，让图片只能在划定的区域内显示) </router-link>
+    </li>
+    <h2>tif</h2>
+    <li>
+      <router-link to="/tif/index"> 解析tif </router-link>
     </li>
   </ul>
 </template>

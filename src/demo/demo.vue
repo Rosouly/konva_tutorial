@@ -45,14 +45,21 @@
             </div>
         </div>
         <div class="right-container">
-            <CupPreview :imageUrl="imageSrc"></CupPreview>
+            <div class="right-top-container">
+                <CupPreview_3D :imageUrl="imageSrc"></CupPreview_3D>
+            </div>
+            <div class="right-bottom-container">
+                <CupPreview_2D :imageUrl="imageSrc"></CupPreview_2D>
+            </div>
+            
         </div>
     </div>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue';
-import CupPreview from "../three/demo.vue"
+import CupPreview_3D from "../three/3D.vue"
+import CupPreview_2D from "../three/2D.vue"
 
 const transformerRef = ref(null)
 const selectedImageName = ref('');
@@ -254,11 +261,24 @@ onMounted(() => {
             border-bottom: 2px black solid;
         }
 
-        .left-bottom-container {}
+        .left-bottom-container {
+            flex: 1;
+        }
     }
 
     .right-container {
         flex: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        .right-top-container {
+            width: 100%;
+            height: 50%;
+            border-bottom: 2px black solid;
+        }
+        .right-bottom-container {
+            flex: 1;
+        }
     }
 }
 </style>
