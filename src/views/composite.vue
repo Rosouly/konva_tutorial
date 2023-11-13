@@ -1,26 +1,32 @@
 <template>
-    <button @click="downloadImage">导出图片</button>
+    <button @click="batchDownloadImage">导出图片</button>
     <v-stage ref="stageRef" :config="stageConfig" @mousedown="handleStageMouseDown" @touchstart="handleStageMouseDown">
         <v-layer>
             <v-image :config="Image0Config"></v-image>
         </v-layer>
         <v-layer>
-            <v-group>
-                <!-- 需要被替换的图层 -->
-                <v-image :config="Image1Config"></v-image>
-                <!-- 替换的图层 -->
-                <v-image :config="Image2Config" @transformend="handleTransformEnd"></v-image>
-                <v-transformer ref="transformerRef" />
-            </v-group>
+
+            <!-- 需要被替换的图层 -->
+            <v-image :config="Image1Config"></v-image>
+            <v-image :config="Image2Config" @transformend="handleTransformEnd"></v-image>
+            <v-transformer ref="transformerRef" />
+
         </v-layer>
         <v-layer>
             <v-image class="shadow_image" :config="Image3Config"></v-image>
         </v-layer>
     </v-stage>
+    <div class="non-show">
+        <v-stage ref="stage1Ref" :config="stageConfig"></v-stage>
+    </div>
+    <div>
+        <image src="https://th.bing.com/th?id=OPA.65PhRKuFIYFazw474C474&o=5&pid=21.1&c=4&h=224&w=268&rs=1"></image>
+    </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import Konva from 'konva';
+import { onMounted, reactive, ref } from 'vue';
 
 const transformerRef = ref(null)
 const stageRef = ref(null)
@@ -42,7 +48,7 @@ const Image0Config = reactive({
 })
 
 const Image1 = new Image()
-Image1.src = "/src/assets/1.png" // 带透明的图片
+Image1.src = "/src/assets/1.png" // 带透明的图片（被替换的图片）
 const Image1Config = reactive({
     image: Image1,
     width: 500,
@@ -50,7 +56,7 @@ const Image1Config = reactive({
 })
 
 const Image2 = new Image()
-Image2.src = "/src/assets/background.png" // 不透明的图片
+Image2.src = "https://abd-amazon-output.oss-cn-shenzhen.aliyuncs.com/oversea/replacement.png?OSSAccessKeyId=LTAI5tMJJDbcxJZekS7GjAvr&Expires=1699871412&Signature=i9%2BV%2BTaKGSIkTbFsx1oycUR5Fy4%3D" // 不透明的图片（替换的图片）
 const Image2Config = reactive({
     image: Image2,
     width: 500,
@@ -122,8 +128,153 @@ function updateTransformer() {
     }
 }
 
+// -----------------------------------
+// -----------------------------------
+// -----------------------------------
+// -----------------------------------
+// -----------------------------------
+// -----------------------------------
+// -----------------------------------
+// -----------------------------------
+
+
+
+class ImageObject {
+    // 默认宽高为500
+    constructor(src, width = 500, height = 500, options = {}) {
+        this.src = src;
+        this.width = width;
+        this.height = height;
+        this.options = options;
+    }
+}
+
+function createKonvaImage(image) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            // 图片加载完成后，创建 Konva.Image 对象
+            const konvaImage = new Konva.Image({
+                image: img,
+                width: image.width,
+                height: image.height,
+                ...image.options
+            });
+            resolve(konvaImage); // 解决 Promise，返回 Konva.Image 对象
+        };
+
+        img.onerror = () => {
+            reject(new Error("Image failed to load")); // 如果图片加载失败，拒绝 Promise
+        };
+
+        img.src = image.src; // 设置图片源，开始加载过程
+        img.crossOrigin = 'Anonymous'
+    });
+}
+
+
+let imageInfo = [
+    {
+        src: "/src/assets/3.png",
+        type: 1
+    },
+    {
+        src: "/src/assets/1.png",
+        type: 2
+    },
+    {
+        src: "/src/assets/阴影.png",
+        type: 3
+    }
+]
+
+let changeImageInfo = [
+    // {
+    //     src: "https://abd-amazon-output.oss-cn-shenzhen.aliyuncs.com/oversea/replacement.png?OSSAccessKeyId=LTAI5tMJJDbcxJZekS7GjAvr&Expires=1699874709&Signature=4cCqRqI%2F3t9i5vYs0xpV3%2Fe3O74%3D",
+    // }
+    // {
+    //     src: "/src/assets/background.png",
+    // },
+    {
+        src: "https://abd-amazon-output.oss-cn-shenzhen.aliyuncs.com/oversea/replacement.png?OSSAccessKeyId=LTAI5tMJJDbcxJZekS7GjAvr&Expires=1699871412&Signature=i9%2BV%2BTaKGSIkTbFsx1oycUR5Fy4%3D",
+    }
+]
+
+// 如果type = 1
+let bottomImages = [];
+// 如果type = 2
+let replaceableImages = [];
+// 如果type = 3
+let overlayImages = [];
+
+imageInfo.forEach(item => {
+    let imageObject = new ImageObject(item.src);
+    switch (item.type) {
+        case 1:
+            bottomImages.push(imageObject);
+            break;
+        case 2:
+            replaceableImages.push(imageObject);
+            break;
+        case 3:
+            overlayImages.push(imageObject);
+            break;
+        default:
+            break;
+    }
+})
+
+
+const stage1Ref = ref(null)
+async function BatchImage(image) {
+    // 创建一个舞台
+    const stage = stage1Ref.value.getNode();
+
+    // 加载所有底部图片，并添加到bottomLayer
+    const bottomLayer = new Konva.Layer();
+    const loadedBottomImages = await Promise.all(bottomImages.map(item => createKonvaImage(item)));
+    loadedBottomImages.forEach(konvaImage => bottomLayer.add(konvaImage));
+    stage.add(bottomLayer);
+
+    // 加载所有可替换图片，并添加到replaceLayer
+    const replaceLayer = new Konva.Layer();
+    const loadedReplaceableImages = await Promise.all(replaceableImages.map(item => createKonvaImage(item)));
+    loadedReplaceableImages.forEach(konvaImage => replaceLayer.add(konvaImage));
+
+    // 处理素材图
+    const imageObject = new ImageObject(image.src, 500, 500, { globalCompositeOperation: "source-atop", name: "target", draggable: true });
+    const konvaImageReplace = await createKonvaImage(imageObject);
+    replaceLayer.add(konvaImageReplace);
+    stage.add(replaceLayer);
+
+    // 加载所有覆盖图片，并添加到overlayLayer
+    const overlayLayer = new Konva.Layer();
+    const loadedOverlayImages = await Promise.all(overlayImages.map(item => createKonvaImage(item)));
+    loadedOverlayImages.forEach(konvaImage => overlayLayer.add(konvaImage));
+    stage.add(overlayLayer);
+
+    downloadImage(stage);
+
+    console.log("移除layer之前的stage：", stage)
+
+    stage.children.forEach(layer => {
+        layer.remove()
+    });
+
+    console.log("移除layer之后的stage：", stage)
+
+    stage.draw();
+}
+
+async function batchDownloadImage() {
+    for (let item of changeImageInfo) {
+        await BatchImage(item);
+    }
+}
+
 function downloadImage() {
-    const stage = stageRef.value.getNode();
+    // const stage = stageRef.value.getNode();
+    const stage = stage1Ref.value.getNode();
     const dataURL = stage.toDataURL({
         pixelRatio: 3, // 增加导出图片的质量
         mimeType: 'image/png',
@@ -148,4 +299,8 @@ function downloadImage() {
 .shadow_image {
     pointer-events: none !important;
 }
+
+/* .non-show {
+    display: none;
+} */
 </style>
